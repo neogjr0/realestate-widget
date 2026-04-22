@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #13131a;
+    --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --neon: #00e5ff;
+    --neon2: #7c3aed;
+    --neon3: #10b981;
+    --red: #ff4d6d;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --card: #16161f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; }
+
+  .widget { max-width: 860px; margin: 0 auto; padding: 0; }
+
+  /* 헤더 */
+  .header { padding: 28px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .header-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .header-title span { color: var(--neon); }
+  .header-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(0,229,255,0.1); color: var(--neon); border: 1px solid rgba(0,229,255,0.2); }
+  .header-date { font-size: 12px; color: var(--muted); }
+
+  /* 지역 탭 */
+  .tab-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+  .tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: var(--bg2); transition: all 0.2s; }
+  .tab:hover { border-color: var(--neon); color: var(--neon); }
+  .tab.active { background: rgba(0,229,255,0.1); border-color: var(--neon); color: var(--neon); font-weight: 600; }
+
+  /* 요약 카드 */
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .sum-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .sum-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .sum-value { font-size: 22px; font-weight: 700; color: var(--text); }
+  .sum-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .sum-up { color: var(--red); }
+  .sum-down { color: var(--neon); }
+
+  /* 섹션 타이틀 */
+  .section-title { font-size: 14px; font-weight: 600; color: var(--neon); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::before { content:''; display:block; width:3px; height:14px; background:var(--neon); border-radius:2px; }
+
+  /* 랭킹 */
+  .ranking { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+  .rank-row { display: grid; grid-template-columns: 44px 1fr 80px 90px 70px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
+  .rank-row:last-child { border-bottom: none; }
+  .rank-row:hover { background: rgba(0,229,255,0.04); }
+  .rank-row.header-row { background: var(--bg3); font-size: 11px; color: var(--muted); letter-spacing: 0.05em; cursor: default; }
+  .rank-row.header-row:hover { background: var(--bg3); }
+  .rank-num { font-size: 16px; font-weight: 700; color: var(--muted); text-align: center; }
+  .rank-num.top1 { color: #ffd700; }
+  .rank-num.top2 { color: #c0c0c0; }
+  .rank-num.top3 { color: #cd7f32; }
+  .rank-name { font-size: 14px; font-weight: 500; }
+  .rank-dong { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rank-price { font-size: 15px; font-weight: 700; color: var(--neon); text-align: right; }
+  .rank-area { font-size: 12px; color: var(--muted); text-align: center; }
+  .rank-change { font-size: 12px; text-align: right; font-weight: 500; }
+  .up { color: var(--red); }
+  .down { color: #4ade80; }
+
+  /* 차트 영역 */
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+
+  /* 바 차트 */
+  .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-item:last-child { margin-bottom: 0; }
+  .bar-label { font-size: 11px; color: var(--muted); width: 90px; flex-shrink: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--neon2), var(--neon)); display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; transition: width 0.8s ease; }
+  .bar-fill span { font-size: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+
+  /* 도넛/면적 차트 */
+  .size-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+  .size-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .size-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--neon3); transition: height 0.8s ease; }
+  .size-count { font-size: 10px; color: var(--neon3); font-weight: 600; }
+  .size-name { font-size: 9px; color: var(--muted); }
+
+  /* 추이 라인 */
+  .trend-svg { width: 100%; }
+
+  /* 데이터 출처 */
+  .footer { font-size: 11px; color: var(--muted); padding: 14px 0; border-top: 1px solid var(--border); line-height: 1.7; }
+  .footer a { color: var(--neon); text-decoration: none; }
+
+  /* 로딩 */
+  .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 14px; }
+  .loading-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--neon); margin: 0 3px; animation: pulse 1.2s ease-in-out infinite; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.2)} }
+
+  @media (max-width: 600px) {
+    .charts { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr 1fr; }
+    .rank-row { grid-template-columns: 36px 1fr 70px 80px; }
+    .rank-area { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title">서울 아파트 <span>실거래가</span> 랭킹</div>
+      <div class="header-badge">국토부 공식</div>
+    </div>
+    <div class="header-date" id="update-date">2026년 3월 기준</div>
+  </div>
+
+  <!-- 지역 탭 -->
+  <div class="tab-wrap" id="tab-wrap">
+    <div class="tab active" data-region="11680">강남구</div>
+    <div class="tab" data-region="11650">서초구</div>
+    <div class="tab" data-region="11710">송파구</div>
+    <div class="tab" data-region="11440">마포구</div>
+    <div class="tab" data-region="11170">용산구</div>
+    <div class="tab" data-region="11200">성동구</div>
+    <div class="tab" data-region="11560">영등포구</div>
+    <div class="tab" data-region="11740">강동구</div>
+  </div>
+
+  <!-- 로딩 -->
+  <div class="loading" id="loading">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div style="margin-top:12px;">실거래 데이터 불러오는 중...</div>
+  </div>
+
+  <!-- 콘텐츠 -->
+  <div id="content" style="display:none;">
+
+    <!-- 요약 카드 -->
+    <div class="summary">
+      <div class="sum-card">
+        <div class="sum-label">최고 거래가</div>
+        <div class="sum-value" id="max-price">-</div>
+        <div class="sum-sub" id="max-apt">-</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">평균 거래가</div>
+        <div class="sum-value" id="avg-price">-</div>
+        <div class="sum-sub" id="total-count">-</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">총 거래 건수</div>
+        <div class="sum-value" id="deal-count">-</div>
+        <div class="sum-sub" id="deal-month">-</div>
+      </div>
+    </div>
+
+    <!-- 랭킹 -->
+    <div class="section-title">최고가 TOP 10</div>
+    <div class="ranking">
+      <div class="rank-row header-row">
+        <div>순위</div>
+        <div>단지명</div>
+        <div style="text-align:right;">최고가</div>
+        <div style="text-align:center;">면적</div>
+        <div style="text-align:right;">층</div>
+      </div>
+      <div id="ranking-body"></div>
+    </div>
+
+    <!-- 차트 -->
+    <div class="charts">
+      <!-- 바 차트 -->
+      <div class="chart-card">
+        <div class="section-title">단지별 최고가</div>
+        <div id="bar-chart"></div>
+      </div>
+      <!-- 면적 분포 -->
+      <div class="chart-card">
+        <div class="section-title">면적대별 거래</div>
+        <div class="size-bars" id="size-chart"></div>
+      </div>
+    </div>
+
+    <!-- 추이 차트 -->
+    <div class="chart-card" style="margin-bottom:24px;">
+      <div class="section-title">월별 평균 거래가 추이</div>
+      <svg class="trend-svg" height="120" id="trend-chart" viewBox="0 0 800 120"></svg>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;" id="trend-labels"></div>
+    </div>
+
+  </div>
+
+  <!-- 푸터 -->
+  <div class="footer">
+    ※ 국토교통부 실거래가 공개시스템 기준 / 계약일 기준 집계<br>
+    데이터 출처: <a href="https://rt.molit.go.kr" target="_blank">국토교통부 실거래가 공개시스템</a>
+  </div>
+
+</div>
+
+<script>
+const API_KEY = "7b6efd99b84e03fca06677a5f9632db682bac3e47d90f5ec37f3b4947e84307e";
+const DEAL_YMD = "202603";
+
+const REGIONS = {
+  "11680":"강남구","11650":"서초구","11710":"송파구",
+  "11440":"마포구","11170":"용산구","11200":"성동구",
+  "11560":"영등포구","11740":"강동구"
+};
+
+let currentData = [];
+
+async function fetchData(lawdCd) {
+  const url = `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade`;
+  let allItems = [];
+  let page = 1;
+
+  while(true) {
+    const params = new URLSearchParams({
+      serviceKey: API_KEY,
+      LAWD_CD: lawdCd,
+      DEAL_YMD: DEAL_YMD,
+      pageNo: page,
+      numOfRows: 100,
+      _type: "json"
+    });
+
+    const res = await fetch(`${url}?${params}`);
+    const data = await res.json();
+    const body = data?.response?.body;
+    if (!body) break;
+
+    let items = body?.items?.item || [];
+    if (!Array.isArray(items)) items = [items];
+    if (!items.length) break;
+
+    allItems = [...allItems, ...items];
+    if (page * 100 >= parseInt(body.totalCount || 0)) break;
+    page++;
+  }
+
+  return allItems.map(d => ({
+    aptNm: d.aptNm?.trim(),
+    umdNm: d.umdNm?.trim(),
+    dealAmount: parseInt(String(d.dealAmount).replace(/,/g,"")),
+    excluUseAr: parseFloat(d.excluUseAr),
+    floor: d.floor,
+    dealYear: d.dealYear,
+    dealMonth: d.dealMonth,
+  }));
+}
+
+function renderSummary(data) {
+  const sorted = [...data].sort((a,b) => b.dealAmount - a.dealAmount);
+  const max = sorted[0];
+  const avg = Math.round(data.reduce((s,d) => s+d.dealAmount, 0) / data.length);
+
+  document.getElementById("max-price").textContent = (max.dealAmount/10000).toFixed(1) + "억";
+  document.getElementById("max-apt").textContent = max.aptNm;
+  document.getElementById("avg-price").textContent = (avg/10000).toFixed(1) + "억";
+  document.getElementById("total-count").textContent = "평균 거래가";
+  document.getElementById("deal-count").textContent = data.length.toLocaleString() + "건";
+  document.getElementById("deal-month").textContent = DEAL_YMD.slice(0,4) + "년 " + parseInt(DEAL_YMD.slice(4)) + "월";
+}
+
+function renderRanking(data) {
+  const top10 = Object.values(
+    data.reduce((acc, d) => {
+      if (!acc[d.aptNm] || acc[d.aptNm].dealAmount < d.dealAmount) {
+        acc[d.aptNm] = d;
+      }
+      return acc;
+    }, {})
+  ).sort((a,b) => b.dealAmount - a.dealAmount).slice(0, 10);
+
+  const numClasses = ["","top1","top2","top3"];
+
+  document.getElementById("ranking-body").innerHTML = top10.map((d, i) => `
+    <div class="rank-row">
+      <div class="rank-num ${numClasses[i+1]||''}">${i+1}</div>
+      <div>
+        <div class="rank-name">${d.aptNm}</div>
+        <div class="rank-dong">${d.umdNm}</div>
+      </div>
+      <div class="rank-price">${(d.dealAmount/10000).toFixed(1)}억</div>
+      <div class="rank-area">${d.excluUseAr}㎡</div>
+      <div class="rank-change" style="color:var(--muted);">${d.floor}층</div>
+    </div>
+  `).join("");
+
+  return top10;
+}
+
+function renderBarChart(top10) {
+  const max = top10[0].dealAmount;
+  document.getElementById("bar-chart").innerHTML = top10.slice(0,7).map(d => `
+    <div class="bar-item">
+      <div class="bar-label">${d.aptNm}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${Math.round(d.dealAmount/max*100)}%">
+          <span>${(d.dealAmount/10000).toFixed(0)}억</span>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderSizeChart(data) {
+  const bins = [[0,40],[40,60],[60,85],[85,115],[115,999]];
+  const labels = ["~40","40~60","60~85","85~115","115~"];
+  const counts = bins.map(([a,b]) => data.filter(d => d.excluUseAr >= a && d.excluUseAr < b).length);
+  const max = Math.max(...counts);
+
+  document.getElementById("size-chart").innerHTML = counts.map((c, i) => `
+    <div class="size-col">
+      <div class="size-count">${c}건</div>
+      <div class="size-bar" style="height:${Math.round(c/max*70)+10}px;"></div>
+      <div class="size-name">${labels[i]}㎡</div>
+    </div>
+  `).join("");
+}
+
+function renderTrendChart(data) {
+  const monthly = {};
+  data.forEach(d => {
+    const key = `${d.dealYear}.${String(d.dealMonth).padStart(2,'0')}`;
+    if (!monthly[key]) monthly[key] = [];
+    monthly[key].push(d.dealAmount);
+  });
+
+  const labels = Object.keys(monthly).sort();
+  const avgs = labels.map(k => Math.round(monthly[k].reduce((s,v)=>s+v,0)/monthly[k].length));
+
+  if (avgs.length < 2) return;
+
+  const W = 800, H = 100, pad = 40;
+  const minV = Math.min(...avgs);
+  const maxV = Math.max(...avgs);
+  const range = maxV - minV || 1;
+
+  const pts = avgs.map((v, i) => ({
+    x: pad + i * (W - pad*2) / (avgs.length - 1),
+    y: H - pad/2 - ((v - minV) / range) * (H - pad)
+  }));
+
+  const pathD = pts.map((p,i) => `${i===0?'M':'L'}${p.x},${p.y}`).join(' ');
+  const areaD = `${pathD} L${pts[pts.length-1].x},${H} L${pts[0].x},${H} Z`;
+
+  const svg = `
+    <defs>
+      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaD}" fill="url(#tg)"/>
+    <path d="${pathD}" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#00e5ff" stroke="#0d0d0f" stroke-width="2"/>`).join('')}
+  `;
+
+  document.getElementById("trend-chart").innerHTML = svg;
+  document.getElementById("trend-labels").innerHTML = labels.map(l =>
+    `<span style="font-size:10px;color:#6b6b80;">${l}</span>`
+  ).join('');
+}
+
+async function loadRegion(lawdCd) {
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("content").style.display = "none";
+
+  try {
+    const data = await fetchData(lawdCd);
+    if (!data.length) throw new Error("데이터 없음");
+
+    currentData = data;
+    renderSummary(data);
+    const top10 = renderRanking(data);
+    renderBarChart(top10);
+    renderSizeChart(data);
+    renderTrendChart(data);
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "block";
+  } catch(e) {
+    document.getElementById("loading").innerHTML = `<div style="color:#ff4d6d;">데이터 로드 실패: ${e.message}</div>`;
+  }
+}
+
+// 탭 클릭
+document.getElementById("tab-wrap").addEventListener("click", e => {
+  const tab = e.target.closest(".tab");
+  if (!tab) return;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  loadRegion(tab.dataset.region);
+});
+
+// 초기 로드
+loadRegion("11680");
+</script>
+</body>
+</html>
